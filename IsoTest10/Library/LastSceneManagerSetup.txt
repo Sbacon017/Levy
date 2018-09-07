@@ -1,4 +1,0 @@
-sceneSetups:
-- path: Assets/UltimateIsometricToolkit/Scenes/LevyGame.unity
-  isLoaded: 1
-  isActive: 1
