@@ -31,11 +31,14 @@ public class GameManager : MonoBehaviour
     public JamesController james;
     public DeathProps props;
 
+    public AudioSource Sound_Effects;
+
     //Private variables for checking Levy Position and distance from closest floor.
     private int currentClosestFloor = 0;
     private double currentDistanceToClosestFloor = 0.0;
     //private const double isoTransformOffset = 12;
 
+    // Music clips for different floors
     public AudioClip Lobby;
     public AudioClip Bar;
     public AudioClip AkiraLeon;
@@ -43,9 +46,29 @@ public class GameManager : MonoBehaviour
     public AudioClip Zahra;
     public AudioClip Theme;
 
+    //Sound Effect Audio Clips
+    public AudioClip pwrDown;
+    public AudioClip pwrUp;
+    public AudioClip floorDing;
+    public AudioClip energyDown;
+    public AudioClip dayBoom;
+    public AudioClip newspaperSlap;
+
+    //Sound Effects for Death
+    public AudioClip AkiraDeath;
+    public AudioClip LeonDeath;
+    public AudioClip ZahraDeath;
+
+    // AudioSource Setup (need array for multiple sources)
+    public AudioSource[] audioSources;
+
+
     //Awake is always called before any Start functions
     void Awake()
     {
+        audioSources = GetComponents<AudioSource>();
+        BG_Music = audioSources[0];
+        Sound_Effects = audioSources[1];
         //Call the InitGame function to initialize the first level 
         InitGame();
     }
@@ -106,6 +129,9 @@ public class GameManager : MonoBehaviour
         Debug.Log("Moves Left: " + movesLeft);
         if (movesLeft == 0)
         {
+            //Play "power-up" clip
+            Sound_Effects.clip = pwrUp;
+            Sound_Effects.Play();
             if (day == 4)
             {
                 SceneManager.LoadScene("ComingSoon", LoadSceneMode.Single);
@@ -118,15 +144,13 @@ public class GameManager : MonoBehaviour
         }
         else if (scriptCount == 3 || (day == 4 && scriptCount == 2))
         {
-            movesUI[movesLeft].SetActive(false);
-            movesUI[movesLeft - 1].SetActive(true);
+            decreaseMovesLeft();
             Debug.Log("Day script finished, random event");
             return 1;
         }
         else if (movesLeft > 3)
         {
-            movesUI[movesLeft].SetActive(false);
-            movesUI[movesLeft - 1].SetActive(true);
+            decreaseMovesLeft();
             Random.InitState((int)System.DateTime.Now.Ticks);
             choice = Random.Range(0, 2);
             Debug.Log("Day not finished, chose random: " + choice);
@@ -134,8 +158,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            movesUI[movesLeft].SetActive(false);
-            movesUI[movesLeft - 1].SetActive(true);
+            decreaseMovesLeft();
             Debug.Log("Day not finished, running out of time, scripted event");
             return 0;
         }
@@ -145,6 +168,15 @@ public class GameManager : MonoBehaviour
     public void Char_Done()
     {
         StartCoroutine(WaitToSelect());
+    }
+
+    private void decreaseMovesLeft()
+    {
+        movesUI[movesLeft].SetActive(false);
+        movesUI[movesLeft - 1].SetActive(true);
+        Sound_Effects.clip = energyDown;
+        Sound_Effects.Play();
+        Debug.Log("decreaseMovesLeft() called.");
     }
 
     IEnumerator WaitToSelect()
@@ -175,8 +207,13 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
         dayScreens[day].SetActive(true);
+        Sound_Effects.clip = dayBoom;
+        Sound_Effects.Play();
         yield return new WaitForSeconds(3);
         dayScreens[day].SetActive(false);
+        //Play "power-up" clip
+        Sound_Effects.clip = pwrUp;
+        Sound_Effects.Play();
         Levy.SetActive(true);
         UI.SetActive(true);
         dingActive = false;
@@ -194,18 +231,41 @@ public class GameManager : MonoBehaviour
         {
             Paper_Image.texture = Daily_Papers[day];
         }
+        Sound_Effects.clip = newspaperSlap;
+        Sound_Effects.Play();
         NewsPaper.SetActive(true);
         props.setOutlines(day, Chars);
 
     }
 
     void newDay()
-    {
+    {   
         dingActive = true;
         day++;
         james.generalIndex = 0;
         if (Chars[deathScript[day - 1]].did_script && Chars[4].did_script)
+        {
             Chars[deathScript[day - 1]].kill();
+            switch (day - 1)
+            {
+                case 1:
+                    Sound_Effects.clip = LeonDeath;
+                    Sound_Effects.Play();
+                    //yield return new WaitForSeconds(3);
+                    break;
+                case 2:
+                    Sound_Effects.clip = AkiraDeath;
+                    Sound_Effects.Play();
+                    //yield return new WaitForSeconds(3);
+                    break;
+                case 3:
+                    Sound_Effects.clip = ZahraDeath;
+                    Sound_Effects.Play();
+                    //yield return new WaitForSeconds(3);
+                    break;
+
+            }
+        }
         scriptCount = 0;
 
         PauseCanvas.SetActive(false);
@@ -316,7 +376,7 @@ public class GameManager : MonoBehaviour
 
     private double getLevyPosition()
     {
-        Debug.Log("Current Position: " + Levy.transform.position.y);
+        //Debug.Log("Current Position: " + Levy.transform.position.y);
         return Levy.transform.position.y;
     }
 
