@@ -4,7 +4,8 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour {
+public class GameManager : MonoBehaviour
+{
 
     public Char_Movement_Controller[] Chars;
     //public static GameManager instance = null;              //Static instance of GameManager which allows it to be accessed by any other script.
@@ -17,7 +18,7 @@ public class GameManager : MonoBehaviour {
     public GameObject PauseCanvas;
     public GameObject UI;
     private int movesLeft = 10;
-    private int[] deathScript = {0, 3, 1, 6, 0};
+    private int[] deathScript = { 0, 3, 1, 6, 0 };
     public GameObject[] movesUI;
     public Text dayText;
     private int satisfaction = 5;
@@ -30,6 +31,17 @@ public class GameManager : MonoBehaviour {
     public JamesController james;
     public DeathProps props;
 
+    //Private variables for checking Levy Position and distance from closest floor.
+    private int currentClosestFloor = 0;
+    private double currentDistanceToClosestFloor = 0.0;
+    //private const double isoTransformOffset = 12;
+
+    public AudioClip Lobby;
+    public AudioClip Bar;
+    public AudioClip AkiraLeon;
+    public AudioClip William;
+    public AudioClip Zahra;
+    public AudioClip Theme;
 
     //Awake is always called before any Start functions
     void Awake()
@@ -47,13 +59,14 @@ public class GameManager : MonoBehaviour {
         PauseCanvas.SetActive(false);
         UI.SetActive(false);
         Day = (Day_Operation)this.GetComponent("Day_Operation");
-        for (int i = 0; i<Chars.Length; i++)
+        for (int i = 0; i < Chars.Length; i++)
         {
             if (Chars[i].getIsAlive())
             {
                 Chars[i]._isoTransform.Position = Chars[i].HomeBase;
                 Chars[i].ar_id = i;
-            }else
+            }
+            else
             {
                 Chars[i].gameObject.SetActive(false);
             }
@@ -66,7 +79,10 @@ public class GameManager : MonoBehaviour {
     //Update is called every frame.
     void Update()
     {
-        
+        //Updating volume and audio source based on Levy Position
+        updateBGMusicByFloor();
+
+        //Script/char activity logic
         if (!dingActive && !CEnginge.convActive && !james.speaking && !NewsPaper.activeInHierarchy)
         {
             dingActive = true;
@@ -74,7 +90,8 @@ public class GameManager : MonoBehaviour {
             if (choice == 1)
             {
                 Day.Random_Ding(Chars);
-            }else if(choice == 0)
+            }
+            else if (choice == 0)
             {
                 Day.Script(scriptCount, day, Chars);
                 scriptCount++;
@@ -138,7 +155,7 @@ public class GameManager : MonoBehaviour {
 
     IEnumerator DayStart()
     {
-        
+
         for (int i = 0; i < Chars.Length; i++)
         {
             if (Chars[i].getIsAlive())
@@ -179,7 +196,7 @@ public class GameManager : MonoBehaviour {
         }
         NewsPaper.SetActive(true);
         props.setOutlines(day, Chars);
-        
+
     }
 
     void newDay()
@@ -218,9 +235,10 @@ public class GameManager : MonoBehaviour {
         if (satisfaction > 0)
         {
             Debug.Log("SubSat");
-            Vector2 velocity = new Vector2(0,0);
+            Vector2 velocity = new Vector2(0, 0);
             UI_Sat.localPosition -= new Vector3(0, 46f, 0);
-        }else
+        }
+        else
         {
             SceneManager.LoadScene("GameOver", LoadSceneMode.Single);
         }
@@ -229,5 +247,82 @@ public class GameManager : MonoBehaviour {
     public int Reaper(int day)
     {
         return deathScript[day];
+    }
+
+    public void updateBGMusicByFloor()
+    {
+        int newClosestFloor = getClosestFloor();
+        if (newClosestFloor != currentClosestFloor)
+        {
+            setAudioClip(newClosestFloor);
+            currentClosestFloor = newClosestFloor;
+        }
+        updateVolume();
+    }
+
+    private int getClosestFloor()
+    {
+        // Iso transform floor positions (not used)
+        //int[] floors = {-98, -74, -49, -24, -1};
+
+        //Non-iso transform positions (used)
+        int[] floors = { -83, -62, -40, -19, 1 };
+        double levyPos = getLevyPosition();
+        int closest = currentClosestFloor;
+        currentDistanceToClosestFloor = System.Math.Abs(floors[closest] - levyPos);
+        for (int i = 0; i < 5; i++)
+        {
+            double newDistance = System.Math.Abs(floors[i] - levyPos);
+            if (newDistance < currentDistanceToClosestFloor)
+            {
+                closest = i;
+                currentDistanceToClosestFloor = newDistance;
+            }
+        }
+        return closest;
+    }
+
+    private void setAudioClip(int closestFloor)
+    {
+        switch (closestFloor)
+        {
+            case 0:
+                BG_Music.clip = Lobby;
+                BG_Music.Play();
+                break;
+            case 1:
+                BG_Music.clip = Bar;
+                BG_Music.Play();
+                break;
+            case 2:
+                BG_Music.clip = AkiraLeon;
+                BG_Music.Play();
+                break;
+            case 3:
+                BG_Music.clip = William;
+                BG_Music.Play();
+                break;
+            case 4:
+                BG_Music.clip = Zahra;
+                BG_Music.Play();
+                break;
+            default:
+                BG_Music.clip = Theme;
+                BG_Music.Play();
+                break;
+        }
+
+    }
+
+    private double getLevyPosition()
+    {
+        Debug.Log("Current Position: " + Levy.transform.position.y);
+        return Levy.transform.position.y;
+    }
+
+    private void updateVolume()
+    {
+        //Debug.Log("Volume in updateVolume = " + (float)(.02 - (currentDistanceToClosestFloor * .001)));
+        BG_Music.volume = (float)(.025 - (currentDistanceToClosestFloor * .002));
     }
 }
