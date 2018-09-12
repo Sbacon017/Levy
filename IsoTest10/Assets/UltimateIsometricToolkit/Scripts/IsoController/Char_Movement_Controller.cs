@@ -82,7 +82,7 @@ public class Char_Movement_Controller : MonoBehaviour
         while(true){
             if (!ding)
             {
-                Vector3 dest = new Vector3(Random.Range(1, 12), y, Random.Range(1, 12));
+                Vector3 dest = new Vector3(Random.Range(1, 8), y, Random.Range(1, 7)); //x and z were 1,12 (Steph)
                 setSprite(dest);
                 AstarAgent.MoveTo(dest);
             }

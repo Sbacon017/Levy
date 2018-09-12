@@ -30,7 +30,18 @@ namespace Assets.UltimateIsometricToolkit.Scripts.Pathfinding {
 			
 			var startNode = Graph.ClosestNode(GetComponent<IsoTransform>().Position);
 			var endNode = Graph.ClosestNode(destination);
-			if (startNode == null) {
+
+            /* STEPH ADDED THIS TO TEST RANDOM MOVEMENT CONSTRAINTS!!
+            if (destination.x < 1 || destination.x > 8 || destination.z < 1 || destination.z > 7)
+            {
+                Debug.Log("AHHH I CAN'T GO THERE ANYMORE!!");
+                Debug.Log("Destination x: " + destination.x + "  Destination z: " + destination.z);
+                return;
+            }
+            END TEST ZONE!
+            */
+
+            if (startNode == null) {
 				Debug.LogError("Invalid position, no node found close enough to " + GetComponent<IsoTransform>().Position);
 				return;
 			}

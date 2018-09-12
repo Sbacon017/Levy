@@ -20,6 +20,10 @@ public class DeathProps : MonoBehaviour {
     public GameObject Akira_vial;
     public GameObject Zahra_note;
 
+    //Props to turn off
+    public GameObject bar_chair_1;
+    public GameObject bar_chair_2;
+
     public void setOutlines(int day, Char_Movement_Controller[] Chars)
     {
         //Eddie dies
@@ -50,6 +54,8 @@ public class DeathProps : MonoBehaviour {
             Leon_maps.SetActive(false);
             HH_book.SetActive(true);
             Leon_knife.SetActive(false);
+            bar_chair_1.SetActive(false);
+            bar_chair_2.SetActive(false);
         }
 
         //Zahra and unimportant lady I forget about die

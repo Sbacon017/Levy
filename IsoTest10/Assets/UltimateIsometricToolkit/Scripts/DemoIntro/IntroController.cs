@@ -27,6 +27,7 @@ public class IntroController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+        Debug.Log("Start called in IntroController");
         NewsPaper.SetActive(true);
         StartCoroutine(initIntro());
     }
